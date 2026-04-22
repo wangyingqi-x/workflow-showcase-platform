@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: workflow-showcase-platform
+  profiles:
+    active: demo
+
+server:
+  port: 8080

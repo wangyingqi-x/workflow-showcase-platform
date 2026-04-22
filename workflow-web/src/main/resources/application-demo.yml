@@ -1,0 +1,12 @@
+workflow:
+  max-steps: 64
+  async-enabled: true
+  graph-engine:
+    node-max-steps: 8
+    core-pool-size: 4
+    max-pool-size: 8
+    queue-size: 32
+
+logging:
+  level:
+    com.iyunwen: INFO
