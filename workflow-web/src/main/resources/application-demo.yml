@@ -9,4 +9,14 @@ workflow:
 
 logging:
   level:
-    com.iyunwen: INFO
+    com.itao: INFO
+
+llm:
+  provider: ${LLM_PROVIDER:GLM}
+  api-key: ${ZAI_API_KEY:${GLM_API_KEY:${LLM_API_KEY:${OPENAI_API_KEY:}}}}
+  base-url: ${LLM_BASE_URL:https://open.bigmodel.cn/api/paas/v4}
+  model: ${LLM_MODEL:glm-5.1}
+  temperature: ${LLM_TEMPERATURE:0.2}
+
+mcp:
+  servers: []

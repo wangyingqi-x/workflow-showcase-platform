@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Studio</title>
+    <style>
+        :root {
+            --bg: #efe5d6;
+            --panel: rgba(255, 251, 245, 0.92);
+            --panel-strong: #fffaf2;
+            --ink: #172126;
+            --muted: rgba(23, 33, 38, 0.68);
+            --line: rgba(23, 33, 38, 0.1);
+            --brand: #c65d2f;
+            --brand-deep: #943819;
+            --teal: #0f6c70;
+            --teal-soft: rgba(15, 108, 112, 0.12);
+            --gold: #ac7a27;
+            --shadow: 0 22px 44px rgba(58, 41, 18, 0.12);
+            --ok: #256c3c;
+            --ok-soft: rgba(37, 108, 60, 0.12);
+            --warn: #ac7a27;
+            --warn-soft: rgba(172, 122, 39, 0.14);
+            --danger: #b3432f;
+            --danger-soft: rgba(179, 67, 47, 0.14);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at left top, rgba(198, 93, 47, 0.16), transparent 28%),
+                radial-gradient(circle at right top, rgba(15, 108, 112, 0.14), transparent 24%),
+                linear-gradient(135deg, #e7dbc7 0%, #f7f1e8 45%, #ebe0d1 100%);
+            font-family: "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+
+        button,
+        input,
+        textarea,
+        select {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+            cursor: pointer;
+            transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .shell {
+            width: min(1540px, calc(100vw - 28px));
+            margin: 16px auto 28px;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.9fr);
+            gap: 18px;
+            padding: 28px;
+            border-radius: 32px;
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(255, 249, 241, 0.95)),
+                radial-gradient(circle at right bottom, rgba(15, 108, 112, 0.1), transparent 36%);
+            border: 1px solid rgba(148, 56, 25, 0.12);
+            box-shadow: var(--shadow);
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(23, 33, 38, 0.08);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 18px 0 12px;
+            font-family: "Noto Serif SC", "Songti SC", "STSong", serif;
+            font-size: clamp(34px, 4.8vw, 56px);
+            line-height: 0.96;
+            letter-spacing: -0.04em;
+        }
+
+        .hero p,
+        .panel-head p,
+        .subtle,
+        .helper {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.75;
+        }
+
+        .hero-actions,
+        .toolbar-actions,
+        .row-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn-primary,
+        .btn-secondary,
+        .btn-ghost,
+        .btn-warn {
+            padding: 12px 18px;
+            border-radius: 999px;
+        }
+
+        .btn-primary {
+            color: #fff;
+            background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+            box-shadow: 0 12px 22px rgba(148, 56, 25, 0.22);
+        }
+
+        .btn-secondary {
+            color: var(--ink);
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(23, 33, 38, 0.1);
+        }
+
+        .btn-ghost {
+            color: var(--teal);
+            background: var(--teal-soft);
+        }
+
+        .btn-warn {
+            color: #fff;
+            background: linear-gradient(135deg, #b47a2d, #944c1f);
+        }
+
+        .hero-side,
+        .stack {
+            display: grid;
+            gap: 16px;
+            align-content: start;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .metric-card,
+        .panel {
+            padding: 18px;
+            border-radius: 24px;
+            border: 1px solid var(--line);
+            background: var(--panel);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+
+        .metric-card strong {
+            display: block;
+            margin-top: 8px;
+            font-size: 28px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(320px, 360px) minmax(0, 1.2fr) minmax(320px, 380px);
+            gap: 18px;
+            margin-top: 18px;
+            align-items: start;
+        }
+
+        .panel-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .panel-head h2,
+        .panel-head h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .badge,
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .badge {
+            color: var(--brand-deep);
+            background: rgba(198, 93, 47, 0.12);
+        }
+
+        .pill {
+            color: var(--teal);
+            background: rgba(15, 108, 112, 0.1);
+        }
+
+        .status-line {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(15, 108, 112, 0.12);
+            color: var(--teal);
+            font-weight: 700;
+        }
+
+        .status-line.running {
+            background: var(--warn-soft);
+            color: var(--warn);
+        }
+
+        .status-line.failed {
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+
+        .status-line.waiting {
+            background: rgba(198, 93, 47, 0.12);
+            color: var(--brand-deep);
+        }
+
+        .server-list,
+        .tool-groups,
+        .chat-history,
+        .trace-list,
+        .tool-list,
+        .timeline,
+        .summary-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .server-card,
+        .tool-group,
+        .chat-message,
+        .trace-card,
+        .tool-card,
+        .timeline-card,
+        .summary-card {
+            border-radius: 20px;
+            border: 1px solid rgba(23, 33, 38, 0.08);
+            background: rgba(255, 255, 255, 0.78);
+            padding: 14px;
+        }
+
+        .server-card strong,
+        .tool-group strong,
+        .trace-card strong,
+        .tool-card strong,
+        .summary-card strong,
+        .chat-message strong {
+            display: block;
+            margin: 6px 0;
+            font-size: 15px;
+        }
+
+        .server-meta,
+        .tool-entry,
+        .tool-entry-head,
+        .chat-message-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .server-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .server-status.healthy {
+            background: var(--ok-soft);
+            color: var(--ok);
+        }
+
+        .server-status.degraded,
+        .server-status.configured {
+            background: var(--warn-soft);
+            color: var(--warn);
+        }
+
+        .server-status.failed,
+        .server-status.disabled {
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+
+        .tool-entry {
+            padding: 12px 0;
+            border-top: 1px solid rgba(23, 33, 38, 0.08);
+        }
+
+        .tool-entry:first-of-type {
+            border-top: 0;
+            padding-top: 0;
+        }
+
+        .tool-entry label {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            cursor: pointer;
+        }
+
+        .tool-entry input[type="checkbox"] {
+            margin-top: 2px;
+        }
+
+        .tool-schema,
+        .code-box,
+        input,
+        textarea,
+        select {
+            width: 100%;
+            border-radius: 16px;
+            border: 1px solid rgba(23, 33, 38, 0.1);
+            background: rgba(255, 255, 255, 0.88);
+            padding: 12px 14px;
+            color: var(--ink);
+        }
+
+        .tool-schema,
+        .code-box,
+        textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        .tool-schema,
+        .code-box,
+        .trace-body,
+        .tool-body,
+        .timeline-body,
+        .summary-body,
+        .chat-message-body {
+            white-space: pre-wrap;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .field-row,
+        .field-grid {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .field-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .helper {
+            font-size: 13px;
+        }
+
+        .chat-shell {
+            display: grid;
+            gap: 12px;
+        }
+
+        .interaction-panel[hidden] {
+            display: none;
+        }
+
+        .interaction-panel {
+            border-color: rgba(198, 93, 47, 0.18);
+            background:
+                linear-gradient(135deg, rgba(255, 248, 240, 0.94), rgba(255, 253, 248, 0.94));
+        }
+
+        .interaction-shell {
+            display: grid;
+            gap: 14px;
+        }
+
+        .interaction-callout {
+            padding: 14px 16px;
+            border-radius: 18px;
+            background: rgba(198, 93, 47, 0.08);
+            border: 1px solid rgba(198, 93, 47, 0.16);
+        }
+
+        .interaction-meta {
+            display: grid;
+            gap: 10px;
+        }
+
+        .interaction-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .chat-history {
+            min-height: 280px;
+            max-height: 420px;
+            overflow: auto;
+            padding-right: 4px;
+        }
+
+        .chat-message.user {
+            border-color: rgba(15, 108, 112, 0.18);
+            background: rgba(15, 108, 112, 0.08);
+        }
+
+        .chat-message.assistant {
+            border-color: rgba(198, 93, 47, 0.16);
+            background: rgba(198, 93, 47, 0.06);
+        }
+
+        .chat-message.streaming {
+            box-shadow: 0 0 0 1px rgba(198, 93, 47, 0.12), 0 16px 24px rgba(148, 56, 25, 0.12);
+        }
+
+        .empty-state {
+            padding: 14px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.62);
+            border: 1px dashed rgba(23, 33, 38, 0.12);
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .summary-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        small {
+            color: var(--muted);
+        }
+
+        @media (max-width: 1320px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .hero {
+                grid-template-columns: 1fr;
+            }
+
+            .field-grid,
+            .metric-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .shell {
+                width: calc(100vw - 16px);
+                margin: 8px auto 18px;
+            }
+
+            .hero {
+                padding: 20px;
+                border-radius: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="shell">
+    <section class="hero">
+        <div>
+            <div class="eyebrow">Real MCP Platform</div>
+            <h1>Agent Studio<br>Generic MCP Chat Agent</h1>
+            <p>
+                This page is built for real external LLMs and real MCP servers.
+                It focuses on live MCP status, dynamic import, tool selection,
+                and a generic chat agent that can decide which MCP tools to use.
+            </p>
+            <div class="hero-actions" style="margin-top: 18px;">
+                <button id="refresh-metadata" class="btn-primary">Refresh Metadata</button>
+                <button id="refresh-mcp" class="btn-secondary">Refresh All MCP</button>
+                <button id="select-all-tools" class="btn-ghost">Select Healthy Tools</button>
+                <button id="clear-tools" class="btn-warn">Clear Tool Selection</button>
+            </div>
+            <div class="helper" style="margin-top: 16px;">
+                Selected tools are injected into a real ReAct workflow.
+                With no selected tools, the agent falls back to direct chat.
+                With selected tools, the runtime executes Planner Agent -> MCP Tool(s) -> Synthesis Agent.
+            </div>
+        </div>
+        <div class="hero-side">
+            <div class="metric-grid">
+                <article class="metric-card">
+                    <span class="badge">LLM</span>
+                    <strong id="hero-llm">-</strong>
+                    <div class="subtle" id="hero-llm-note">-</div>
+                </article>
+                <article class="metric-card">
+                    <span class="badge">Servers</span>
+                    <strong id="hero-server-count">0</strong>
+                    <div class="subtle">Configured MCP servers</div>
+                </article>
+                <article class="metric-card">
+                    <span class="badge">Tools</span>
+                    <strong id="hero-tool-count">0</strong>
+                    <div class="subtle">Discovered real MCP tools</div>
+                </article>
+                <article class="metric-card">
+                    <span class="badge">Selected</span>
+                    <strong id="hero-selected-count">0</strong>
+                    <div class="subtle">Tools exposed to the agent</div>
+                </article>
+            </div>
+            <article class="panel">
+                <div class="panel-head">
+                    <div>
+                        <h3>Runtime Overview</h3>
+                        <p>High-level state for the live agent platform.</p>
+                    </div>
+                    <span class="pill">Live</span>
+                </div>
+                <div id="summary-list" class="summary-list"></div>
+            </article>
+        </div>
+    </section>
+
+    <section class="layout">
+        <aside class="stack">
+            <article class="panel">
+                <div class="panel-head">
+                    <div>
+                        <h2>MCP Servers</h2>
+                        <p>Current configured or dynamically imported MCP servers.</p>
+                    </div>
+                    <span class="pill">Status</span>
+                </div>
+                <div id="server-list" class="server-list"></div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-head">
+                    <div>
+                        <h2>Dynamic Import</h2>
+                        <p>Import a new stdio or HTTP MCP server without restarting the app.</p>
+                    </div>
+                    <span class="pill">Import</span>
+                </div>
+                <div class="field-grid">
+                    <div class="field-row">
+                        <label for="import-name">Server name</label>
+                        <input id="import-name" placeholder="Example: github-mcp">
+                    </div>
+                    <div class="field-row">
+                        <label for="import-transport">Transport</label>
+                        <select id="import-transport">
+                            <option value="stdio">stdio</option>
+                            <option value="http">http</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field-row">
+                    <label for="import-command">Command (stdio)</label>
+                    <input id="import-command" placeholder="Example: npx or a local .cmd">
+                </div>
+                <div class="field-row">
+                    <label for="import-args">Args JSON</label>
+                    <textarea id="import-args" placeholder='["-y","some-mcp-package"]'></textarea>
+                </div>
+                <div class="field-row">
+                    <label for="import-env">Env JSON</label>
+                    <textarea id="import-env" placeholder='{"API_KEY":"value"}'></textarea>
+                </div>
+                <div class="field-row">
+                    <label for="import-url">URL (HTTP)</label>
+                    <input id="import-url" placeholder="https://your-server/mcp">
+                </div>
+                <div class="field-row">
+                    <label for="import-auth-token">Auth token (HTTP optional)</label>
+                    <input id="import-auth-token" placeholder="Bearer token without prefix">
+                </div>
+                <div class="field-row">
+                    <label for="import-headers">Headers JSON (HTTP optional)</label>
+                    <textarea id="import-headers" placeholder='{"X-Test":"demo"}'></textarea>
+                </div>
+                <div class="row-actions">
+                    <button id="import-mcp" class="btn-primary">Import MCP</button>
+                    <button id="fill-amap-import" class="btn-ghost">Fill AMap Example</button>
+                    <button id="fill-12306-import" class="btn-secondary">Fill 12306 Example</button>
+                </div>
+                <div class="helper" id="import-status">Imported tools will appear in the selection panel below.</div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-head">
+                    <div>
+                        <h2>Tool Selection</h2>
+                        <p>Choose which real MCP tools the current chat agent may call.</p>
+                    </div>
+                    <span class="pill" id="selected-tools-pill">0 selected</span>
+                </div>
+                <div id="tool-groups" class="tool-groups"></div>
+            </article>
+        </aside>
+
+        <main class="stack">
+            <article class="panel chat-shell">
+                <div class="panel-head">
+                    <div>
+                        <h2>Generic Chat Agent</h2>
+                        <p>The UI generates a structured workflow request automatically from the selected tools.</p>
+                    </div>
+                    <div id="run-status" class="status-line">Ready</div>
+                </div>
+                <div id="chat-history" class="chat-history"></div>
+                <div id="chat-interaction-slot"></div>
+                <div class="field-row">
+                    <label for="workflow-mode">Workflow Mode</label>
+                    <select id="workflow-mode">
+                        <option value="auto">Agent Chat / ReAct</option>
+                        <option value="workflow">Workflow Orchestration Demo</option>
+                    </select>
+                    <small id="workflow-mode-note" class="helper">Use selected MCP tools in chat mode, or switch to a nodes-only workflow demo.</small>
+                </div>
+                <div class="field-row">
+                    <label for="chat-input">Message</label>
+                    <textarea id="chat-input" placeholder="Example: Find the coordinates of the Forbidden City, or check Beijing station codes with 12306."></textarea>
+                </div>
+                <div class="row-actions">
+                    <button id="send-chat" class="btn-primary">Send Message</button>
+                    <button id="clear-chat" class="btn-secondary">Clear Conversation</button>
+                </div>
+            </article>
+
+            <article id="interaction-panel" class="panel interaction-panel" hidden>
+                <div class="panel-head">
+                    <div>
+                        <h2>Waiting For Interaction</h2>
+                        <p>The workflow is paused at a real runtime node and is waiting for user input or approval.</p>
+                    </div>
+                    <span class="pill">Resume</span>
+                </div>
+                <div id="interaction-content" class="interaction-shell"></div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-head">
+                    <div>
+                        <h2>Request Preview</h2>
+                        <p>The exact workflow JSON that the frontend is about to send.</p>
+                    </div>
+                    <span class="pill">JSON</span>
+                </div>
+                <pre id="request-preview" class="code-box">{}</pre>
+            </article>
+        </main>
+
+        <aside class="stack">
+            <article class="panel">
+                <div class="panel-head">
+                    <div>
+                        <h2>Run Result</h2>
+                        <p>Latest run metrics, checkpoint, and variable snapshot.</p>
+                    </div>
+                    <span class="pill">Result</span>
+                </div>
+                <div class="metric-grid">
+                    <article class="metric-card">
+                        <span class="badge">Steps</span>
+                        <strong id="metric-steps">0</strong>
+                    </article>
+                    <article class="metric-card">
+                        <span class="badge">Logs</span>
+                        <strong id="metric-logs">0</strong>
+                    </article>
+                    <article class="metric-card" style="grid-column: span 2;">
+                        <span class="badge">Checkpoint</span>
+                        <strong id="metric-checkpoint">-</strong>
+                    </article>
+                </div>
+                <div class="field-row" style="margin-top: 12px;">
+                    <label for="variables-view">Variables</label>
+                    <pre id="variables-view" class="code-box">{}</pre>
+                </div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-head">
+                    <div>
+                        <h2>Reasoning Trace</h2>
+                        <p>Planner decisions, tool observations, and synthesis trace.</p>
+                    </div>
+                    <span class="pill">Trace</span>
+                </div>
+                <div id="trace-list" class="trace-list"></div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-head">
+                    <div>
+                        <h2>Tool View</h2>
+                        <p>Tool calls and tool results from the latest run.</p>
+                    </div>
+                    <span class="pill">Tools</span>
+                </div>
+                <div id="tool-list" class="tool-list"></div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-head">
+                    <div>
+                        <h2>Timeline</h2>
+                        <p>Streaming events such as meta, trace, tool_call, tool_result, result, and done.</p>
+                    </div>
+                    <span class="pill">Timeline</span>
+                </div>
+                <div id="timeline" class="timeline"></div>
+            </article>
+        </aside>
+    </section>
+</div>
+<script src="/agent-studio.js"></script>
+</body>
+</html>

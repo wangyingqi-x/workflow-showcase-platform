@@ -14,7 +14,7 @@ The refactor principle was:
 - bundled internal jars
 - internal hosts, credentials, and production-like configuration
 - enterprise-only adapters
-- interview drafts and operational notes that did not belong in a public repo
+- private working drafts and operational notes that did not belong in a public repo
 
 ## What Was Preserved
 
@@ -24,6 +24,8 @@ The refactor principle was:
 - node abstraction and routing
 - parallel execution demonstration
 - end-to-end local demo API
+- bounded ReAct-style agent orchestration
+- dynamic MCP import and runtime tool registration
 
 ## Why Not Publish the Full Internal App
 
@@ -31,7 +33,7 @@ Publishing the full enterprise-style application would have created three proble
 
 1. It depended on private infrastructure that an external reader could not reproduce.
 2. It included sensitive operational and configuration context.
-3. It would have made the repository harder to understand during an interview.
+3. It would have made the repository harder for external readers to understand quickly.
 
 For a public showcase, a smaller but runnable and truthful slice is stronger than a larger but broken export.
 
@@ -55,10 +57,19 @@ Today the repository officially supports:
 - parallel branch execution
 - join-node synchronization
 - final output aggregation
+- dynamic MCP server import through the Studio UI
+- real external MCP execution after user configuration
+- real external LLM planning after user configuration
+
+## What Is Intentionally Not Bundled
+
+- live API keys
+- local-only MCP runtime paths
+- preinstalled MCP runtime binaries
+- private enterprise adapters or internal environment assumptions
 
 ## Future Public Improvements
 
 - add more safe node types that do not depend on private services
-- provide a lightweight frontend demo page for the showcase API
 - add unit tests around node routing and join behavior
 - add richer visualization of execution traces

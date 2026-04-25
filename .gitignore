@@ -17,6 +17,7 @@ Thumbs.db
 
 .env
 .env.*
+!.env.example
 
 logs/
 **/logs/
@@ -26,3 +27,4 @@ uploads/
 runtime/
 
 *.log
+*.jar.original

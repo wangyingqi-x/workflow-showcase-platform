@@ -1,0 +1,53 @@
+workflow:
+  max-steps: 64
+  async-enabled: true
+  graph-engine:
+    node-max-steps: 8
+    core-pool-size: 4
+    max-pool-size: 8
+    queue-size: 32
+
+logging:
+  level:
+    com.itao: INFO
+
+llm:
+  provider: ${LLM_PROVIDER:GLM}
+  api-key: ${ZAI_API_KEY:${GLM_API_KEY:${LLM_API_KEY:${OPENAI_API_KEY:}}}}
+  base-url: ${LLM_BASE_URL:https://open.bigmodel.cn/api/paas/v4}
+  model: ${LLM_MODEL:glm-5.1}
+  temperature: ${LLM_TEMPERATURE:0.2}
+
+mcp:
+  servers:
+    - name: amap-mcp
+      transport: stdio
+      command: ${AMAP_MCP_COMMAND:npx}
+      args:
+        - -y
+        - "@amap/amap-maps-mcp-server"
+      env:
+        AMAP_MAPS_API_KEY: ${AMAP_MAPS_API_KEY:}
+      protocol-version: ${AMAP_MCP_PROTOCOL_VERSION:2025-03-26}
+      enabled: ${AMAP_MCP_ENABLED:false}
+      tools: []
+
+    - name: train-12306-mcp
+      transport: stdio
+      command: ${TRAIN_12306_MCP_COMMAND:npx}
+      args:
+        - -y
+        - 12306-mcp
+      protocol-version: ${TRAIN_12306_MCP_PROTOCOL_VERSION:2025-03-26}
+      enabled: ${TRAIN_12306_MCP_ENABLED:false}
+      tools: []
+
+    - name: remote-http-mcp
+      transport: http
+      url: ${REMOTE_MCP_URL:https://your-mcp-server.example.com/mcp}
+      auth-token: ${REMOTE_MCP_TOKEN:}
+      protocol-version: ${REMOTE_MCP_PROTOCOL_VERSION:2025-03-26}
+      enabled: ${REMOTE_MCP_ENABLED:false}
+      headers:
+        Content-Type: application/json
+      tools: []

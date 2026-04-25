@@ -1,57 +1,79 @@
 # workflow-showcase-platform
 
-> Engine-first public showcase of an AI workflow orchestration platform with a self-built DAG runtime, pluggable node system, and runnable local demo profile.
+> Build visual agent workflows on top of a self-built Java DAG engine: node orchestration, bounded ReAct loops, and dynamic MCP integration in one Studio.
 
-## 中文简介
+## Overview
 
-这是一个面向公开仓库重构后的 AI Workflow Orchestration Platform 展示版。  
-公开版保留了原项目最值得展示的部分：多模块 Spring Boot 架构、自研 DAG 执行引擎、节点体系、并行调度模型，以及面向 AI 编排和文档处理场景的扩展思路。
+`workflow-showcase-platform` is a showcase repository centered on one clear question:
 
-这个仓库不是企业内网版本的直接开源镜像，而是一个专门为了 GitHub 展示和面试讲解整理出的 public edition：
+How do you turn a custom workflow engine into a usable agent platform instead of a static demo page?
 
-- 保留核心引擎结构和模块边界
-- 去除私有基础设施、闭源依赖和敏感配置
-- 用 `demo` profile 提供可本地启动、可真实访问的最小演示路径
+## Project Snapshot
 
-## English Overview
+- Self-built Java graph engine instead of a thin wrapper around an existing agent framework
+- One Studio that demonstrates both pure workflow orchestration and tool-using ReAct execution
+- Dynamic MCP import with runtime discovery, health checks, and tool registration
+- Public-safe release posture: real integration interfaces, but no bundled secrets or local-only runtime paths
 
-`workflow-showcase-platform` is a public, interview-ready refactor of a production-style workflow system.  
-The repository keeps the strongest technical parts of the original codebase: a multi-module Spring Boot layout, a graph-oriented execution engine, a node abstraction model, parallel scheduling, and an extension story for AI/document workflows.
+This public edition keeps the parts that best answer that question:
 
-This public edition is intentionally not a 1:1 copy of the internal platform. Instead, it delivers an honest and runnable demo slice:
+- a self-built DAG runtime with explicit routing and state propagation
+- a node model built around `Start`, `Condition`, `Agent`, `Tool`, `Output`, `RunWait`, and `End`
+- bounded ReAct-style planning loops inside the graph engine
+- dynamic MCP server discovery, import, health checking, and tool registration
+- a browser-based `Agent Studio` that can run both agent workflows and pure node orchestration flows
 
-- the engine architecture is preserved
-- private enterprise integrations are removed or replaced
-- the `demo` profile is the official local run path
+## What You Can Demo Today
 
-## Why It Stands Out
+### 1. Agent Chat / ReAct Mode
 
-- Self-built DAG execution engine instead of a CRUD-style orchestration shell
-- Clear node abstraction with execution routing, state passing, and end-node materialization
-- Runnable parallel branch + join demo that makes the scheduling model visible
-- Public-edition refactor that keeps architectural depth while removing private infrastructure and secrets
+The Studio can run a generic chat workflow that:
 
-## Core Highlights
+- accepts natural-language input
+- exposes the selected MCP tools to a planning agent
+- lets the planner choose tools, observe results, and decide again
+- synthesizes the final answer after tool execution
 
-- `workflow-engine` keeps the execution core: graph loading, node creation, routing, state persistence, and parallel dispatch.
-- `workflow-web` exposes a runnable Spring Boot demo API for an end-to-end showcase flow.
-- `workflow-pojo` and `workflow-utils` preserve the shared contract and utility split from the original multi-module design.
-- `workflow-admin` is intentionally kept as a reserved module boundary in the public edition, even though enterprise-facing adapters were removed.
+This is useful for demonstrating:
+
+- tool-aware planning
+- multi-step agent loops
+- MCP integration
+- traceable decisions and tool activity
+
+### 2. Workflow Orchestration Demo
+
+The Studio also includes a nodes-only orchestration mode that does not rely on agent planning or MCP tools.
+
+It demonstrates:
+
+- parallel branching
+- conditional routing
+- `RunWait` join behavior
+- conditional recovery/fallback
+- final output aggregation through variable references
+
+This is useful when you want to emphasize workflow composition itself rather than agent reasoning.
+
+## Why This Project Stands Out
+
+- The execution engine is first-class. The agent runtime is embedded in the graph instead of being bolted on as a separate chat sandbox.
+- ReAct is bounded and inspectable. Iteration budgets, tool calls, observations, joins, and final synthesis are all visible in the runtime state.
+- MCP is treated as a platform capability. Servers can be configured statically or imported at runtime through the Studio UI.
+- The frontend is not a mock shell. It builds real workflow requests, streams results, and exposes trace, timeline, variables, and tool activity.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    Client["Demo Caller / Interviewer"] --> Web["workflow-web\nSpring Boot demo app"]
+    Browser["Agent Studio"] --> Web["workflow-web\nSpring Boot app"]
     Web --> Engine["workflow-engine\nGraphEngine / NodeFactory"]
-    Engine --> Nodes["Start / Output / RunWaiting / End"]
-    Engine --> State["GraphState\nVariable & context store"]
-    Engine --> Pool["RunGraphNodeThreadPool\nParallel execution"]
+    Engine --> Nodes["Start / Condition / Agent / Tool / Output / RunWait / End"]
+    Engine --> State["GraphState\nVariables / chat context / trace / tool results"]
+    Engine --> Pool["Parallel scheduling"]
+    Nodes --> LLM["GLM-compatible chat model client"]
+    Nodes --> MCP["Dynamic MCP registry\nstdio + HTTP"]
 ```
-
-The public demo follows the same architectural direction as the larger internal platform: the web layer provides orchestration entrypoints, the engine owns graph execution, and nodes remain the unit of behavior.  
-For the public release, enterprise integrations were cut first, while the execution model was kept intact.  
-That means the local demo still shows real branching, parallel node scheduling, join synchronization, variable propagation, and workflow completion.
 
 ## Repository Structure
 
@@ -63,31 +85,32 @@ workflow-showcase-platform/
 |- workflow-admin
 |- workflow-web
 |- doc
+|- scripts
 ```
 
-- `workflow-pojo`: shared public DTOs and enums used by the engine demo.
-- `workflow-utils`: lightweight utility layer rebuilt for the public edition.
-- `workflow-engine`: graph runtime, node model, scheduling, callback, and execution state.
-- `workflow-admin`: reserved module boundary kept for architectural completeness; enterprise adapters are intentionally removed.
-- `workflow-web`: Spring Boot entrypoint and local runnable `demo` profile.
-- `doc`: public technical notes for GitHub and interview walkthroughs.
+- `workflow-pojo`: shared DTOs and enums
+- `workflow-utils`: utility and Spring helper classes
+- `workflow-engine`: graph runtime, node system, scheduling, state, agent/tool orchestration
+- `workflow-admin`: reserved module boundary kept for the architecture story
+- `workflow-web`: Spring Boot entrypoint, demo APIs, and the Studio frontend
+- `doc`: public-facing notes and demo guides
+- `scripts`: smoke and local verification helpers
 
-## Demo Scenario
+## Public Release Posture
 
-The default demo flow is an engine-first showcase focused on parallel scheduling:
+This repository is intentionally published as a safe public edition:
 
-1. `Start` emits guide text and initializes graph state.
-2. The graph branches into two parallel `Output` nodes.
-3. Each branch simulates distinct work with different delays.
-4. `RunWaitingNode` waits until both upstream branches finish.
-5. `End` collects the final materialized outputs into workflow result variables.
+- no live API keys are stored in tracked runtime config
+- no local `runtime/` paths are required in the default profile
+- the default `demo` profile remains runnable without any external secret
+- external LLM and MCP capabilities are preserved through environment variables, example config, and dynamic import
 
-This gives an interviewer something concrete to inspect:
+That means:
 
-- a graph definition
-- a real engine run
-- parallel execution behavior
-- final aggregated workflow state
+- the app starts out of the box
+- workflow orchestration mode works immediately
+- direct chat works in fallback mode without an LLM key
+- real external MCP and real external LLM integration are still supported, but you configure them yourself
 
 ## Quick Start
 
@@ -99,87 +122,178 @@ This gives an interviewer something concrete to inspect:
 ### Build
 
 ```bash
-mvn -DskipTests package
+mvn -q -DskipTests package
 ```
 
-### Run the Demo App
+### Run
 
 ```bash
 java -jar workflow-web/target/workflow-web-1.0.0-SNAPSHOT.jar --spring.profiles.active=demo
 ```
 
-### Demo Endpoints
+### Open
 
-```bash
-curl http://localhost:8080/api/demo/workflows/parallel-showcase
-curl http://localhost:8080/api/demo/workflows/parallel-showcase/run
+```text
+http://localhost:8080/
 ```
 
-## Verified Demo Result
+The homepage redirects to:
 
-The current public demo has been locally verified with:
+```text
+http://localhost:8080/agent-studio.html
+```
 
-- scenario: `parallel-branch-join`
-- workflow status: `COMPLETED`
-- executed steps: `5`
-- final outputs:
-  - `branchA = Branch A produced a structured summary for the final report.`
-  - `branchB = Branch B prepared a document-parsing insight package.`
+## Configuration Model
 
-## Configuration
+### Default Public Config
 
-The public edition uses `workflow-web/src/main/resources/application-demo.yml` as the official local profile.
+The tracked runtime config is:
 
-Important knobs:
+- [application-demo.yml](./workflow-web/src/main/resources/application-demo.yml)
 
-- `workflow.max-steps`: graph-level step guard
-- `workflow.async-enabled`: whether node execution uses the parallel pool
-- `workflow.graph-engine.core-pool-size`: demo thread pool size
-- `workflow.graph-engine.max-pool-size`: upper bound for parallel execution
-- `workflow.graph-engine.queue-size`: bounded queue for submitted node tasks
+It is safe for GitHub and uses environment variables for any external LLM configuration. By default it does **not** preload MCP servers.
 
-## Public Edition Notes
+### Example Full Config
 
-What is real in this repository:
+If you want a starting point for real external integration, use:
 
-- multi-module architecture
-- graph runtime skeleton
-- node lifecycle and routing model
-- parallel branch execution
-- join/wait synchronization
-- final workflow output materialization
+- [application-demo.example.yml](./workflow-web/src/main/resources/application-demo.example.yml)
+- [application-demo.mcp-example.yml](./workflow-web/src/main/resources/application-demo.mcp-example.yml)
 
-What is intentionally removed or mocked:
+These example files show:
 
-- Nacos and service discovery
-- internal Redis / MySQL / Milvus / Elasticsearch / MinIO dependencies
-- private SSO and cloud SDKs
-- closed-source jars and commercial document-processing packages
-- internal business flows, interview drafts, and environment-specific scripts
+- GLM-compatible LLM configuration via environment variables
+- stdio MCP examples for AMap and 12306
+- a generic remote HTTP MCP example
 
-## Security and Sanitization
+### Example Environment Variables
 
-This public snapshot was rebuilt for open publication:
+Use:
 
-- live credentials, private endpoints, bundled internal jars, and internal docs were removed
-- enterprise-only dependencies were replaced by a minimal public dependency set
-- the repository now ships a local `demo` run path instead of a production-like internal startup path
+- [`.env.example`](./.env.example)
 
-## Engineering Tradeoffs
+This file is a tracked reference template for shell or CI environment variables. It is not auto-loaded by Spring Boot, but it documents the supported variable names.
 
-- The first public pass preserves module and package shape where it helps readability, instead of doing a risky full namespace rename.
-- The public release prioritizes one truthful runnable slice over pretending the full internal platform is portable.
-- `workflow-admin` remains as a structural module boundary even though its enterprise implementation was removed, because that split is still useful in architecture discussions.
+## How To Add Real MCP Servers
 
-## Interview Talking Points
+You have two public-friendly options.
 
-- Why a workflow system benefits from a graph engine instead of direct controller-to-service branching
-- How node abstractions make scheduling, routing, and capability expansion easier
-- Why public refactoring should cut infrastructure coupling before cutting core product logic
-- How the demo still proves real engine behavior even without private enterprise integrations
+### Option 1. Dynamic Import In The Studio UI
+
+This is the fastest way to demonstrate the platform:
+
+1. Start the app.
+2. Open `Agent Studio`.
+3. Go to `Dynamic Import`.
+4. Import a stdio MCP or HTTP MCP server.
+5. Refresh metadata and select the imported tools.
+
+This path is great for demos because it proves:
+
+- runtime server discovery
+- health checks
+- imported tool registration
+- immediate agent access to the imported tools
+
+### Option 2. Static Config Through Example YAML
+
+If you want repeatable local startup with preconfigured servers:
+
+1. Copy `application-demo.example.yml`
+2. Move the parts you want into `application-demo.yml` or override them with environment variables
+3. Supply your own keys and commands
+
+This path is better when you want a stable local dev profile.
+
+## Installing MCP Runtimes
+
+The public repo does not bundle local MCP runtimes.
+
+Install them on your own machine, for example:
+
+### AMap
+
+```bash
+npx -y @amap/amap-maps-mcp-server
+```
+
+Requires:
+
+- `AMAP_MAPS_API_KEY`
+
+### 12306
+
+```bash
+npx -y 12306-mcp
+```
+
+### Fetch
+
+```bash
+uvx mcp-server-fetch
+```
+
+After installation, either:
+
+- configure the command in example YAML, or
+- import the server from the Studio UI
+
+## Suggested Demo Flow
+
+### Workflow Mode
+
+Use `Workflow Orchestration Demo` in the Studio and try a message like:
+
+```text
+I want a relaxed Nanjing itinerary and rainy weather is acceptable.
+```
+
+This shows:
+
+- dual condition branches in parallel
+- join behavior
+- recovery routing
+- final aggregation by workflow nodes only
+
+### Agent / ReAct Mode
+
+Import or configure one or more real MCP servers, select the tools, then try a message like:
+
+```text
+Plan a 3-day Nanjing trip. Use tools only when needed, and clearly mark any data you could not fetch.
+```
+
+This shows:
+
+- planning
+- tool selection
+- observation-driven re-planning
+- synthesis
+
+## Verification
+
+Recommended release checks for the public edition:
+
+- `mvn -q -DskipTests compile`
+- `mvn -q -DskipTests package`
+- `scripts/run-e2e-smoke.ps1`
+
+Current local verification for this snapshot:
+
+- `mvn -q -DskipTests compile`
+- default `demo` profile starts successfully
+- `scripts/run-e2e-smoke.ps1 -StartApp $false -BaseUrl 'http://127.0.0.1:8080'` baseline flow passed
+- dynamic MCP import remains available for real external integrations
+
+For optional end-to-end verification scripts, see:
+
+- [Agent Studio Demo Guide](./doc/studio-demo-guide.md)
+- [External E2E Smoke Test](./doc/external-e2e-smoke-test.md)
 
 ## Docs
 
+- [Agent Studio Demo Guide](./doc/studio-demo-guide.md)
 - [Graph Engine Architecture](./doc/graph-engine-architecture.md)
 - [Node System and Interaction Model](./doc/node-system-and-interaction.md)
 - [Public Edition Refactor Tradeoffs](./doc/public-edition-tradeoffs.md)
+- [ReAct Evolution Plan](./doc/react-evolution-plan.md)

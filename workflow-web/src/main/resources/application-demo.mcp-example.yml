@@ -1,0 +1,82 @@
+workflow:
+  max-steps: 64
+  async-enabled: true
+  graph-engine:
+    node-max-steps: 8
+    core-pool-size: 4
+    max-pool-size: 8
+    queue-size: 32
+
+logging:
+  level:
+    com.itao: INFO
+
+llm:
+  provider: ${LLM_PROVIDER:GLM}
+  api-key: ${ZAI_API_KEY:${GLM_API_KEY:${LLM_API_KEY:${OPENAI_API_KEY:}}}}
+  base-url: ${LLM_BASE_URL:https://open.bigmodel.cn/api/paas/v4}
+  model: ${LLM_MODEL:glm-5.1}
+  temperature: ${LLM_TEMPERATURE:0.2}
+
+mcp:
+  servers:
+    # Real stdio MCP example: AMap.
+    - name: amap-mcp
+      transport: stdio
+      command: ${AMAP_MCP_COMMAND:npx}
+      args:
+        - -y
+        - "@amap/amap-maps-mcp-server"
+      env:
+        AMAP_MAPS_API_KEY: ${AMAP_MAPS_API_KEY:}
+      protocol-version: ${AMAP_MCP_PROTOCOL_VERSION:2025-03-26}
+      enabled: ${AMAP_MCP_ENABLED:false}
+      tools: []
+
+    # Real stdio MCP example: 12306.
+    - name: train-12306-mcp
+      transport: stdio
+      command: ${TRAIN_12306_MCP_COMMAND:npx}
+      args:
+        - -y
+        - 12306-mcp
+      protocol-version: ${TRAIN_12306_MCP_PROTOCOL_VERSION:2025-03-26}
+      enabled: ${TRAIN_12306_MCP_ENABLED:false}
+      tools: []
+
+    # Optional real stdio MCP example: official fetch server.
+    # Requires uvx to be installed on the host.
+    # - name: fetch-mcp
+    #   transport: stdio
+    #   command: uvx
+    #   args:
+    #     - mcp-server-fetch
+    #   protocol-version: 2025-03-26
+    #   enabled: true
+    #   tools: []
+
+    # Optional real remote MCP example: GitHub official remote server.
+    # - name: github-mcp
+    #   transport: http
+    #   url: ${GITHUB_MCP_URL:https://api.githubcopilot.com/mcp/}
+    #   auth-token: ${GITHUB_MCP_TOKEN:}
+    #   protocol-version: ${GITHUB_MCP_PROTOCOL_VERSION:2025-03-26}
+    #   enabled: true
+    #   headers:
+    #     X-GitHub-Api-Version: 2022-11-28
+    #   tools: []
+
+# Planner example for the generic chat agent:
+# agent_stage: plan
+# tool_names:
+#   - amap-mcp__maps_geo
+#   - amap-mcp__maps_regeocode
+#   - train-12306-mcp__get-current-date
+#   - train-12306-mcp__get-stations-code-in-city
+#   - train-12306-mcp__get-tickets
+# tool_target_map:
+#   amap-mcp__maps_geo: tool-amap-geo-1
+#   amap-mcp__maps_regeocode: tool-amap-regeo-1
+#   train-12306-mcp__get-current-date: tool-train-date-1
+#   train-12306-mcp__get-stations-code-in-city: tool-train-stations-1
+#   train-12306-mcp__get-tickets: tool-train-tickets-1
