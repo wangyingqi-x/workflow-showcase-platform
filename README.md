@@ -1,66 +1,71 @@
 # workflow-showcase-platform
 
-> Build visual agent workflows on top of a self-built Java DAG engine: node orchestration, bounded ReAct loops, and dynamic MCP integration in one Studio.
+> A public showcase of a self-built Java workflow and agent runtime: DAG orchestration, bounded ReAct loops, dynamic MCP import, and human-in-the-loop resume in one Studio.
 
-## Overview
+## Why This Repo Exists
 
-`workflow-showcase-platform` is a showcase repository centered on one clear question:
+Most workflow or agent demos stop at a static canvas or a thin wrapper around an existing framework.
 
-How do you turn a custom workflow engine into a usable agent platform instead of a static demo page?
+This project goes one layer deeper: it shows how a custom Java DAG engine can evolve into a usable agent platform with real execution state, real tool routing, resumable interaction, and a frontend that actually drives the runtime instead of mocking it.
 
-## Project Snapshot
+## First-Screen Highlights
 
-- Self-built Java graph engine instead of a thin wrapper around an existing agent framework
-- One Studio that demonstrates both pure workflow orchestration and tool-using ReAct execution
-- Dynamic MCP import with runtime discovery, health checks, and tool registration
-- Public-safe release posture: real integration interfaces, but no bundled secrets or local-only runtime paths
+- Self-built `GraphEngine` and node runtime, not a wrapper around LangGraph-style infrastructure
+- One `Agent Studio` that demonstrates both pure node orchestration and tool-using ReAct execution
+- Dynamic MCP import with runtime discovery, health checks, and immediate tool registration
+- Human-in-the-loop `WAITING` and resume flow for `InputNode` and final agent confirmation
+- Public-safe release posture: real integration interfaces, no bundled secrets, no local-only runtime paths
 
-This public edition keeps the parts that best answer that question:
-
-- a self-built DAG runtime with explicit routing and state propagation
-- a node model built around `Start`, `Condition`, `Agent`, `Tool`, `Output`, `RunWait`, and `End`
-- bounded ReAct-style planning loops inside the graph engine
-- dynamic MCP server discovery, import, health checking, and tool registration
-- a browser-based `Agent Studio` that can run both agent workflows and pure node orchestration flows
-
-## What You Can Demo Today
+## What You Can Demo In 5 Minutes
 
 ### 1. Agent Chat / ReAct Mode
 
-The Studio can run a generic chat workflow that:
+Run a generic chat workflow that:
 
 - accepts natural-language input
-- exposes the selected MCP tools to a planning agent
-- lets the planner choose tools, observe results, and decide again
-- synthesizes the final answer after tool execution
+- exposes selected MCP tools to a planning agent
+- lets the planner call tools, observe results, and decide again
+- pauses at the final plan for human confirmation
+- synthesizes the final answer after approval
 
-This is useful for demonstrating:
+This is the fastest path to show:
 
+- bounded multi-step ReAct
 - tool-aware planning
-- multi-step agent loops
 - MCP integration
-- traceable decisions and tool activity
+- traceable decisions, tool calls, and final synthesis
 
-### 2. Workflow Orchestration Demo
+### 2. Workflow-Only Orchestration Mode
 
-The Studio also includes a nodes-only orchestration mode that does not rely on agent planning or MCP tools.
+Run a nodes-only workflow that does not rely on LLM planning or MCP tools.
 
 It demonstrates:
 
-- parallel branching
-- conditional routing
-- `RunWait` join behavior
+- input pause and resume
+- parallel dual-branch routing
 - conditional recovery/fallback
+- `RunWait` join behavior
 - final output aggregation through variable references
 
-This is useful when you want to emphasize workflow composition itself rather than agent reasoning.
+This mode is useful when you want to emphasize workflow composition, routing semantics, and execution control instead of agent reasoning.
 
-## Why This Project Stands Out
+### 3. Runtime MCP Import
 
-- The execution engine is first-class. The agent runtime is embedded in the graph instead of being bolted on as a separate chat sandbox.
-- ReAct is bounded and inspectable. Iteration budgets, tool calls, observations, joins, and final synthesis are all visible in the runtime state.
-- MCP is treated as a platform capability. Servers can be configured statically or imported at runtime through the Studio UI.
-- The frontend is not a mock shell. It builds real workflow requests, streams results, and exposes trace, timeline, variables, and tool activity.
+Use the Studio UI to import a stdio MCP or HTTP MCP server at runtime, refresh metadata, and immediately expose the imported tools to the agent workflow.
+
+This is useful for showing:
+
+- runtime server discovery
+- imported tool registration
+- health-aware tool exposure
+- a more platform-like MCP story than hardcoded demo tools
+
+## Why It Stands Out
+
+- The execution engine is first-class. Agent behavior lives inside the graph runtime instead of being bolted onto a separate chat sandbox.
+- ReAct is bounded and inspectable. Iteration budgets, tool calls, observations, joins, and final synthesis are visible in runtime state and trace output.
+- MCP is treated as a platform capability. Servers can be configured statically or imported dynamically through the Studio.
+- The frontend is part of the product story. It builds real workflow requests, streams execution, and exposes trace, timeline, variables, and interaction state.
 
 ## Architecture
 
