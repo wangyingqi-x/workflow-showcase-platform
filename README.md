@@ -2,6 +2,22 @@
 
 > A public showcase of a self-built Java workflow and agent runtime: DAG orchestration, bounded ReAct loops, dynamic MCP import, and human-in-the-loop resume in one Studio.
 
+## 中文快速说明
+
+这是一个偏 `AI Agent Runtime / Workflow Engine` 方向的公开展示项目，不是单纯的聊天页面 demo。
+
+它主要展示三件事：
+
+- 自建 Java DAG 工作流运行时，而不是套一层现成 Agent 框架
+- 在同一个运行时里承载节点编排、bounded ReAct、多工具调用、人工确认与恢复
+- 通过一个前端 `Agent Studio` 去真实驱动后端执行流、展示 trace / timeline / variables / tool activity
+
+如果你第一次看这个仓库，建议按下面顺序理解：
+
+1. 先跑 `Workflow-Only Orchestration Mode`
+2. 再跑 `Agent Chat / ReAct Mode`
+3. 最后回头看 `workflow-engine` 里的 `GraphEngine`、`GraphState`、`AgentNode`
+
 ## Why This Repo Exists
 
 Most workflow or agent demos stop at a static canvas or a thin wrapper around an existing framework.
@@ -173,12 +189,19 @@ That means:
 
 ## Quick Start
 
+中文提示：
+默认 `demo` profile 不要求先配置大模型 key，也不要求先装 MCP runtime。你可以先把项目跑起来看 workflow 模式，再决定要不要接真实 LLM / MCP。
+
 ### Prerequisites
+
+前置环境：
 
 - JDK 17
 - Maven 3.9+
 
 ### Build
+
+构建：
 
 ```bash
 mvn -q -DskipTests package
@@ -186,11 +209,15 @@ mvn -q -DskipTests package
 
 ### Run
 
+启动：
+
 ```bash
 java -jar workflow-web/target/workflow-web-1.0.0-SNAPSHOT.jar --spring.profiles.active=demo
 ```
 
 ### Open
+
+访问：
 
 ```text
 http://localhost:8080/
@@ -235,6 +262,10 @@ This file is a tracked reference template for shell or CI environment variables.
 
 ### LLM API Key Setup
 
+中文说明：
+如果你只想先体验项目，不配 API Key 也能启动，系统会走本地 fallback 逻辑。
+如果你想演示真正的 Agent 规划、多轮工具调用和更完整的综合回答，再配置下面这些环境变量。
+
 The default `demo` profile reads LLM settings from environment variables:
 
 - `LLM_PROVIDER`
@@ -254,6 +285,8 @@ The key lookup order in [application-demo.yml](./workflow-web/src/main/resources
 
 Example PowerShell setup for GLM:
 
+PowerShell 示例：
+
 ```powershell
 $env:LLM_PROVIDER="GLM"
 $env:LLM_MODEL="glm-5.1"
@@ -264,6 +297,8 @@ java -jar workflow-web/target/workflow-web-1.0.0-SNAPSHOT.jar --spring.profiles.
 ```
 
 You can also override the same values directly on the command line:
+
+也可以直接用命令行参数覆盖：
 
 ```powershell
 java -jar workflow-web/target/workflow-web-1.0.0-SNAPSHOT.jar `
