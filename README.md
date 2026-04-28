@@ -69,16 +69,70 @@ This is useful for showing:
 
 ## Architecture
 
+### System View
+
 ```mermaid
 flowchart LR
     Browser["Agent Studio"] --> Web["workflow-web\nSpring Boot app"]
-    Web --> Engine["workflow-engine\nGraphEngine / NodeFactory"]
-    Engine --> Nodes["Start / Condition / Agent / Tool / Output / RunWait / End"]
-    Engine --> State["GraphState\nVariables / chat context / trace / tool results"]
-    Engine --> Pool["Parallel scheduling"]
-    Nodes --> LLM["GLM-compatible chat model client"]
-    Nodes --> MCP["Dynamic MCP registry\nstdio + HTTP"]
+    Web --> Api["Demo workflow APIs\nrun / stream / resume / MCP import"]
+    Api --> Engine["workflow-engine\nGraphEngine / GraphEngineFactory"]
+    Engine --> Nodes["Node layer\nStart / Input / Condition / Agent / Tool / Output / RunWait / End"]
+    Engine --> State["GraphState\nvariables / chat context / trace / tool results / interaction"]
+    Engine --> Checkpoint["Checkpoint store\nWAITING / resume snapshot"]
+    Engine --> Pool["Parallel scheduler\nRunGraphNodeThreadPool"]
+    Nodes --> LLM["Chat model client\nchat / plan / synthesize"]
+    Nodes --> Registry["Dynamic MCP registry\nimport / refresh / health"]
+    Registry --> MCP["MCP servers\nstdio + HTTP"]
 ```
+
+### Runtime Lifecycle
+
+```mermaid
+sequenceDiagram
+    participant UI as Agent Studio
+    participant Web as workflow-web
+    participant Engine as GraphEngine
+    participant Node as Active Node
+    participant Tool as MCP Tool / LLM
+    participant State as GraphState
+
+    UI->>Web: Submit workflow request
+    Web->>Engine: Build engine from nodes + edges
+    Engine->>State: Seed chat context and variables
+    Engine->>Node: Run runnable nodes
+    alt Tool-using agent step
+        Node->>Tool: Plan / call tool / read observation
+        Tool-->>Node: Tool result or model response
+        Node->>State: Save trace, tool results, variables
+    else Human interaction step
+        Node->>State: Save pending interaction context
+        Engine-->>UI: WAITING + interaction payload
+        UI->>Web: Resume with approval / input
+        Web->>Engine: continueRun(...)
+    end
+    Engine->>Engine: Route downstream nodes / join branches
+    Engine-->>Web: Final result + trace + variables
+    Web-->>UI: Streamed events and completed response
+```
+
+### What This Architecture Is Showing
+
+- `workflow-web` is not just a static demo shell. It exposes real run, stream, resume, and MCP import endpoints.
+- `workflow-engine` owns queue progression, routing, bounded parallel execution, WAITING, and resume.
+- `GraphState` is the shared runtime memory for variables, trace, tool results, chat context, and pending interaction.
+- `AgentNode` and `ToolNode` let agent behavior live inside the same graph model as normal workflow nodes.
+- MCP integration is dynamic: discovered tools are registered at runtime and then exposed back to the planner.
+
+## Capability Map
+
+| Area | What is implemented in this public repo |
+|------|------------------------------------------|
+| Workflow runtime | DAG execution, routing, joins, state propagation, bounded parallel scheduling |
+| Agent runtime | Chat / plan / synthesize stages, bounded ReAct loop, observation-driven continuation |
+| Human in the loop | `WAITING`, `resume`, `InputNode`, final-plan confirmation |
+| Tooling | Dynamic MCP import, runtime discovery, tool registry, stdio / HTTP execution |
+| Frontend | Real Studio request builder, streaming events, trace/timeline/variables views |
+| Public demo posture | Runnable default profile, no bundled secrets, example config for external integrations |
 
 ## Repository Structure
 
@@ -178,6 +232,47 @@ Use:
 - [`.env.example`](./.env.example)
 
 This file is a tracked reference template for shell or CI environment variables. It is not auto-loaded by Spring Boot, but it documents the supported variable names.
+
+### LLM API Key Setup
+
+The default `demo` profile reads LLM settings from environment variables:
+
+- `LLM_PROVIDER`
+- `LLM_MODEL`
+- `LLM_BASE_URL`
+- `ZAI_API_KEY`
+- `GLM_API_KEY`
+- `LLM_API_KEY`
+- `OPENAI_API_KEY`
+
+The key lookup order in [application-demo.yml](./workflow-web/src/main/resources/application-demo.yml) is:
+
+1. `ZAI_API_KEY`
+2. `GLM_API_KEY`
+3. `LLM_API_KEY`
+4. `OPENAI_API_KEY`
+
+Example PowerShell setup for GLM:
+
+```powershell
+$env:LLM_PROVIDER="GLM"
+$env:LLM_MODEL="glm-5.1"
+$env:LLM_BASE_URL="https://open.bigmodel.cn/api/paas/v4"
+$env:ZAI_API_KEY="your_api_key"
+
+java -jar workflow-web/target/workflow-web-1.0.0-SNAPSHOT.jar --spring.profiles.active=demo
+```
+
+You can also override the same values directly on the command line:
+
+```powershell
+java -jar workflow-web/target/workflow-web-1.0.0-SNAPSHOT.jar `
+  --spring.profiles.active=demo `
+  --llm.provider=GLM `
+  --llm.model=glm-5.1 `
+  --llm.base-url=https://open.bigmodel.cn/api/paas/v4 `
+  --llm.api-key=your_api_key
+```
 
 ## How To Add Real MCP Servers
 
